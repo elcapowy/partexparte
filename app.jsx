@@ -335,7 +335,7 @@ function App() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
 
   const wppMsg = () => {
-    const L = ["Hola SANHUA YA, quiero cotizar estos repuestos:", ""];
+    const L = ["Hola PARTE X PARTE, quiero cotizar estos repuestos:", ""];
     carrito.forEach((c, i) => {
       L.push(`${i + 1}) ${c.item.componente}${c.cantidad > 1 ? `  ×${c.cantidad}` : ""}`);
       parseCodigos(c.item.codigoSanhua).forEach(p => {
@@ -392,7 +392,7 @@ function App() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        _subject: `🔧 Nueva solicitud SANHUA YA — ${pedido.nombre} (${pedido.ciudad})`,
+        _subject: `🔧 Nueva solicitud PARTE X PARTE — ${pedido.nombre} (${pedido.ciudad})`,
         Nombre:      pedido.nombre,
         WhatsApp:    pedido.tel,
         Ciudad:      pedido.ciudad,
@@ -487,10 +487,9 @@ function App() {
                 <button key={i} className={"sr-card" + (serie === s ? " sel" : "")}
                   onClick={() => { setSerie(s); setFiltroCat("Todos"); setStep(4); }}>
                   <div className="sr-inner">
-                    <div className="sr-img-wrap" onClick={e => e.stopPropagation()}>
-                      <image-slot id={slotId} class="sr-img-slot" shape="rounded" radius="8" fit="contain"
-                        src={typeof acImg !== 'undefined' ? acImg(s.serie) : ''}
-                        placeholder="foto del equipo"></image-slot>
+                    <div className="sr-img-wrap">
+                      <img className="sr-img-slot" alt={"Equipo " + s.serie} loading="lazy"
+                        src={typeof acImg !== 'undefined' ? acImg(s.serie) : ''} />
                     </div>
                     <div className="sr-text">
                       <div className="sr-top">
@@ -724,7 +723,7 @@ function App() {
                           </div>
                           <a
                             className="rec-add-btn"
-                            href={'https://wa.me/5491134696124?text=' + encodeURIComponent('Hola SANHUA YA, quiero agregar a mi pedido:\n• ' + (a.modelo === 'SP01' ? 'SuperCap Module SP01' : 'Transformador ' + a.modelo) + ' — ' + a.codigo)}
+                            href={'https://wa.me/5491134696124?text=' + encodeURIComponent('Hola PARTE X PARTE, quiero agregar a mi pedido:\n• ' + (a.modelo === 'SP01' ? 'SuperCap Module SP01' : 'Transformador ' + a.modelo) + ' — ' + a.codigo)}
                             target="_blank" rel="noopener noreferrer"
                             style={{textDecoration:'none',display:'flex',alignItems:'center',gap:'4px'}}
                           >

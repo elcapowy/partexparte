@@ -247,7 +247,7 @@ b { color: var(--ink); font-weight: 700; }
 .sr-card.sel { border-color: var(--brand); }
 .sr-inner { display: flex; gap: 14px; align-items: flex-start; }
 .sr-img-wrap { flex-shrink: 0; }
-.sr-img-slot { width: 80px; height: 64px; display: block; }
+.sr-img-slot { width: 80px; height: 64px; display: block; object-fit: contain; border-radius: 8px; }
 .sr-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .sr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .sr-name { font-weight: 700; font-size: 16.5px; color: var(--ink); line-height: 1.25; }
@@ -489,7 +489,7 @@ b { color: var(--ink); font-weight: 700; }
 }
 .anuncio-media { position: relative; min-height: 240px; background: #06111f; }
 .hero-logo { height: 40px; width: auto; display: block; margin: 0 0 4px; }
-.anuncio-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.anuncio-media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% center; display: block; }
 .anuncio-media image-slot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .anuncio-media-scrim { position: absolute; inset: 0; pointer-events: none; z-index: 2;
   background: linear-gradient(180deg, rgba(6,18,34,0) 38%, rgba(6,18,34,.82) 100%); }

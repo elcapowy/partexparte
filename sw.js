@@ -1,13 +1,13 @@
 /* PARTE X PARTE — Service Worker
    Estrategia: stale-while-revalidate para archivos propios (rápido + se actualiza
    en segundo plano), cache-first para CDNs y fuentes. Permite uso offline en la calle. */
-const VERSION = 'pxp-v1';
+const VERSION = 'pxp-v3';
 const CORE = 'pxp-core-' + VERSION;
 const RUNTIME = 'pxp-runtime-' + VERSION;
 
 // Shell mínimo para que la app abra sin conexión luego de instalada.
 const CORE_ASSETS = [
-  './SANHUA%20YA.html',
+  './partexparte.html',
   'styles.css',
   'image-slot.js',
   'ac-images.js',
@@ -51,16 +51,15 @@ self.addEventListener('fetch', (e) => {
   const sameOrigin = url.origin === self.location.origin;
 
   if (sameOrigin) {
-    // stale-while-revalidate
+    // network-first: siempre trae la versión más nueva; cae a caché sólo sin conexión.
     e.respondWith(
-      caches.open(RUNTIME).then(async (cache) => {
-        const cached = await caches.match(req);
-        const fetching = fetch(req).then((res) => {
-          if (res && res.ok) cache.put(req, res.clone());
-          return res;
-        }).catch(() => cached);
-        return cached || fetching;
-      })
+      fetch(req).then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(RUNTIME).then((c) => c.put(req, copy));
+        }
+        return res;
+      }).catch(() => caches.match(req))
     );
   } else {
     // CDNs / fuentes: cache-first

@@ -225,8 +225,7 @@ const Home = ({ go, goApp, openApp, goKits, goAI }) => (
     {/* ANUNCIO — imagen destacada */}
     <section className="anuncio">
       <div className="anuncio-media">
-        <image-slot id="anuncio-componente" className="anuncio-slot" shape="rect" fit="contain" position="50% 50%"
-          placeholder="Arrastrá una foto de alta calidad de un componente real (válvula, presostato, compresor)"></image-slot>
+        <img className="anuncio-slot" src="assets/anuncio-componente.png" alt="Válvula de expansión — estándar original de fábrica" />
         <div className="anuncio-media-scrim" aria-hidden="true"></div>
         <p className="anuncio-overlay">Trabajamos con el estándar original de fábrica: <b>Sanhua</b> y las marcas líderes del mercado.</p>
       </div>
@@ -472,10 +471,6 @@ const Footer = ({ onAdmin }) => (
           SANHUA y su logotipo son marcas registradas de Sanhua International Inc.
         </p>
         <p className="footer-ai">✦ Contenido generado con asistencia de IA · Sujeto a cambios sin previo aviso · No constituye asesoramiento técnico profesional</p>
-        <div className="footer-admin-row">
-          {onAdmin && <button className="footer-admin-btn" onClick={onAdmin}>📋 Ver solicitudes</button>}
-          <a className="footer-admin-btn" href="Control de Items.html">🗂️ Control de ítems</a>
-        </div>
       </div>
     </div>
   </footer>
