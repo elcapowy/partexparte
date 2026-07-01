@@ -62,6 +62,50 @@ function filtrarPrecios(texto) {
   return limpias.join('\n').trim();
 }
 
+// ─────────────────────────────────────────────────────────────
+// Motor de diagnóstico LOCAL (sin backend) — se usa cuando window.claude
+// no existe (sitio publicado en Vercel/GitHub Pages). Clasifica el síntoma
+// por palabras clave y devuelve la respuesta en el mismo formato |||KITS:[]|||
+// ─────────────────────────────────────────────────────────────
+const _norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const AI_REGLAS = [
+  { id: 'post-quemado', re: [/quemad/, /fundi/, /se quemo/, /aceite/, /\bacido\b/, /corto|cortocircuito/, /olor a quemado/],
+    txt: 'Con compresor fundido hay que neutralizar el ácido del aceite quemado. Necesitás el Kit Post-quemado — filtro antiácido y núcleo cerámico.' },
+  { id: 'no-frost', re: [/heladera/, /no ?frost/, /freezer/, /\bhielo\b/, /escarcha/, /congelador/, /\bdamper\b/, /forzador/, /gondola?la/],
+    txt: 'Es un problema típico de No Frost. Necesitás el Kit No Frost — forzador, compuerta de aire y filtro deshidratador.' },
+  { id: 'sek-comercial', re: [/camara/, /exhibidora/, /gondola/, /vitrina/, /comercial/, /moderniz/, /supermercado/, /chiller/, /expansion electronica/, /\bsek\b/],
+    txt: 'Para refrigeración comercial va control electrónico. Necesitás el Kit SEK — VEE, controlador SEC612, transductor y sonda NTC.' },
+  { id: 'valvula-inversora', re: [/no cambia de modo/, /no pasa a calor/, /no calienta/, /no hace calor/, /solo frio/, /no invierte/, /4 ?vias/, /cuatro vias/, /reversora/, /modo calor/, /frio.?calor/],
+    txt: 'Por lo que describís es la válvula reversora. Necesitás el Kit Válvula Inversora — válvula de 4 vías, bobina y filtro.' },
+  { id: 'vee-split', re: [/inverter/, /no baja la temp/, /sopla pero no/, /no enfria bien/, /poca capacidad/, /baja eficiencia/, /tarda en enfriar/, /expansion/, /\bvee\b|\beev\b/, /\bdpf\b/],
+    txt: 'Eso apunta a la válvula de expansión del inverter. Necesitás el Kit Válvula de Expansión para split inverter DPF.' },
+  { id: 'service-split', re: [/service/, /abrir? el? circuito/, /abro el/, /voy a soldar/, /mantenimiento/, /recarga de gas/, /abrir el gas/, /cambio de gas/],
+    txt: 'Si vas a abrir el circuito de gas, llevá el Service básico. Necesitás filtro deshidratador, bobina y sensor.' },
+];
+
+function localDiagnostico(history) {
+  const userTxt = _norm(history.filter(m => m.role === 'user').map(m => m.texto).join(' '));
+  if (!userTxt.trim()) {
+    return '¿Qué problema tiene el equipo? Contame los síntomas.';
+  }
+  // puntuar cada kit por cantidad de coincidencias
+  let best = null, bestScore = 0;
+  for (const r of AI_REGLAS) {
+    const score = r.re.reduce((n, rx) => n + (rx.test(userTxt) ? 1 : 0), 0);
+    if (score > bestScore) { bestScore = score; best = r; }
+  }
+  if (best && bestScore > 0) {
+    return best.txt + ' |||KITS:["' + best.id + '"]|||';
+  }
+  // Sin match claro: una pregunta orientadora o WhatsApp
+  const turnos = history.filter(m => m.role === 'user').length;
+  if (turnos <= 1) {
+    return '¿El equipo es un aire acondicionado (split), una heladera o refrigeración comercial (cámara/exhibidora)?';
+  }
+  return 'Para eso consultanos por WhatsApp, que te asesoramos según el equipo.';
+}
+
 // ─── Renderer de texto del asistente ─────────────────────────
 // Convierte texto plano + posible Markdown residual en nodos React legibles
 function renderAIText(text) {
@@ -170,14 +214,20 @@ function AIScreen({ onBack, onCotizarKit }) {
     setLoading(true);
 
     try {
-      const history = nextMessages.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.texto,
-      }));
-      const response = await window.claude.complete({
-        system: AI_SYSTEM_PROMPT,
-        messages: history,
-      });
+      let response;
+      if (window.claude && typeof window.claude.complete === 'function') {
+        const history = nextMessages.map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.texto,
+        }));
+        response = await window.claude.complete({
+          system: AI_SYSTEM_PROMPT,
+          messages: history,
+        });
+      } else {
+        // Sitio publicado sin backend de IA → motor de reglas local
+        response = localDiagnostico(nextMessages);
+      }
       const parsed = parsearRespuesta(response);
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -185,11 +235,21 @@ function AIScreen({ onBack, onCotizarKit }) {
         kitsIds: parsed.kitsIds,
       }]);
     } catch(e) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        texto: 'No pude conectarme ahora mismo. Probá de nuevo en un momento o contactanos por WhatsApp.',
-        kitsIds: [],
-      }]);
+      // Si la API falló, intentar con el motor local antes de rendirse
+      try {
+        const parsed = parsearRespuesta(localDiagnostico(nextMessages));
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          texto: parsed.texto,
+          kitsIds: parsed.kitsIds,
+        }]);
+      } catch(_) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          texto: 'No pude procesar el mensaje. Contactanos por WhatsApp y te asesoramos según el equipo.',
+          kitsIds: [],
+        }]);
+      }
     }
     setLoading(false);
   };
@@ -267,7 +327,7 @@ function AIScreen({ onBack, onCotizarKit }) {
                   <WppButton
                     text="Consultar por WhatsApp"
                     className="btn btn-wpp btn-sm ai-wpp-cta"
-                    msg={"Hola SANHUA YA, necesito asesoramiento técnico sobre un repuesto."}
+                    msg={"Hola PARTE X PARTE, necesito asesoramiento técnico sobre un repuesto."}
                   />
                 )}
               </div>
