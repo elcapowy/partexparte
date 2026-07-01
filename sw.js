@@ -1,13 +1,14 @@
 /* PARTE X PARTE — Service Worker
    Estrategia: stale-while-revalidate para archivos propios (rápido + se actualiza
    en segundo plano), cache-first para CDNs y fuentes. Permite uso offline en la calle. */
-const VERSION = 'pxp-v3';
+const VERSION = 'pxp-v4';
 const CORE = 'pxp-core-' + VERSION;
 const RUNTIME = 'pxp-runtime-' + VERSION;
 
 // Shell mínimo para que la app abra sin conexión luego de instalada.
 const CORE_ASSETS = [
-  './partexparte.html',
+  './',
+  'index.html',
   'styles.css',
   'image-slot.js',
   'ac-images.js',

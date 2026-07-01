@@ -3,7 +3,7 @@
   "short_name": "PARTE X PARTE",
   "description": "Encontrá el repuesto original exacto para tu equipo de aire acondicionado o refrigeración. Buscá por marca, equipo o aplicación y cotizá al instante.",
   "lang": "es-AR",
-  "start_url": "./partexparte.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
